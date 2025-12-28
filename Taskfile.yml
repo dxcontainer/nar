@@ -1,0 +1,60 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  default:
+    desc: "Run default tasks (lint, build and test)"
+    cmds:
+      - task: lint
+      - task: build
+      - task: test
+
+  build:
+    desc: "Run Go and Nix build"
+    cmds:
+      - task: build:go
+      - task: build:nix
+      - defer: { task: clean}
+
+  build:go:
+    desc: "Run Go build"
+    cmds:
+      - cmd: go build -o nar .
+  
+  build:nix:
+    desc: "Run Nix build"
+    cmds:
+      - nix build --no-link .#nar
+
+  test:
+    desc: "Run Go tests"
+    cmds:
+      - go test ./...
+
+  fmt:
+    desc: "Format Go code"
+    cmds:
+      - go fmt ./...
+
+  lint:
+    desc: "Lint Go code"
+    cmds:
+      - golangci-lint run ./...
+      - go vet ./...
+
+  clean:
+    desc: "Clean build artifacts"
+    cmds:
+      - rm -f nar
+      - go clean
+
+  run:
+    desc: "Run nar (usage: task run -- <directory>)"
+    cmds:
+      - go run . {{.CLI_ARGS}}
+
+  run:sri:
+    desc: "Run nar with --sri flag (usage: task run:sri -- <directory>)"
+    cmds:
+      - go run . --sri {{.CLI_ARGS}}
